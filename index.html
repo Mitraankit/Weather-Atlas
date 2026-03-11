@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Atlas</title>
+    <meta
+      name="description"
+      content="A fast, dependency-free weather app using Open-Meteo."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true">
+      <div class="grain"></div>
+      <div class="blob blob-a"></div>
+      <div class="blob blob-b"></div>
+      <div class="gridlines"></div>
+    </div>
+
+    <main class="app">
+      <header class="top">
+        <div class="brand">
+          <div class="mark" aria-hidden="true"></div>
+          <div>
+            <div class="name">Weather Atlas</div>
+            <div class="tag">Current, hourly, and 7-day forecast</div>
+          </div>
+        </div>
+
+        <form class="search" id="searchForm" autocomplete="off">
+          <label class="sr-only" for="q">Search city</label>
+          <div class="searchRow">
+            <input
+              id="q"
+              name="q"
+              class="input"
+              placeholder="Search a city, e.g. Pune, New York, Tokyo"
+              inputmode="search"
+              spellcheck="false"
+            />
+            <button class="btn" type="submit" id="searchBtn">Search</button>
+            <button class="btn ghost" type="button" id="locateBtn">
+              Use my location
+            </button>
+          </div>
+          <div class="suggest" id="suggest" role="listbox" aria-label="Results">
+            <!-- populated by JS -->
+          </div>
+        </form>
+      </header>
+
+      <section class="content">
+        <div class="panel hero" id="hero" aria-live="polite">
+          <div class="heroTop">
+            <div>
+              <div class="place" id="place">Search a city to begin</div>
+              <div class="meta" id="meta"> </div>
+            </div>
+            <button
+              class="badge"
+              id="badge"
+              type="button"
+              title="Refresh"
+              aria-label="Refresh weather"
+            >
+              <span class="wxIcon" id="wxIcon"></span>
+            </button>
+          </div>
+
+          <div class="heroMain">
+            <div class="temp">
+              <span class="tempValue" id="tempValue">--</span>
+              <span class="tempUnit" id="tempUnit">°C</span>
+            </div>
+            <div class="wx">
+              <div class="wxText" id="wxText"> </div>
+              <div class="wxSub" id="wxSub"> </div>
+            </div>
+          </div>
+
+          <div class="stats" id="stats" hidden>
+            <div class="stat">
+              <div class="k">Feels</div>
+              <div class="v" id="feels">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Humidity</div>
+              <div class="v" id="hum">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Wind</div>
+              <div class="v" id="wind">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Wind direction</div>
+              <div class="v" id="windDir">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Precip</div>
+              <div class="v" id="precip">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Rain chance</div>
+              <div class="v" id="popNow">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Dew point</div>
+              <div class="v" id="dew">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">UV</div>
+              <div class="v" id="uv">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">UV max</div>
+              <div class="v" id="uvMax">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Visibility</div>
+              <div class="v" id="vis">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Pressure</div>
+              <div class="v" id="press">--</div>
+            </div>
+            <div class="stat">
+              <div class="k">Sunrise / Sunset</div>
+              <div class="v" id="sun">--</div>
+            </div>
+          </div>
+
+          <div class="sky" id="sky" hidden>
+            <div class="skyRow">
+              <div class="skyLabel">
+                <span class="skyIcon" id="sunIcon" aria-hidden="true"></span>
+                <span>Sun</span>
+              </div>
+              <div class="skyTimes">
+                <span id="sunriseTime">--</span>
+                <span class="dot">·</span>
+                <span id="sunNow">--</span>
+                <span class="dot">·</span>
+                <span id="sunsetTime">--</span>
+              </div>
+            </div>
+            <div class="skyTrack" aria-label="Sun position">
+              <svg viewBox="0 0 240 60" class="skySvg" aria-hidden="true">
+                <path
+                  class="skyArc"
+                  d="M10 50 Q120 6 230 50"
+                  vector-effect="non-scaling-stroke"
+                />
+                <circle class="skyDot sun" id="sunDot" cx="10" cy="50" r="6" />
+              </svg>
+            </div>
+
+            <div class="skyRow">
+              <div class="skyLabel">
+                <span class="skyIcon" id="moonIcon" aria-hidden="true"></span>
+                <span>Moon</span>
+              </div>
+              <div class="skyTimes">
+                <span id="moonriseTime">--</span>
+                <span class="dot">·</span>
+                <span id="moonNow">--</span>
+                <span class="dot">·</span>
+                <span id="moonsetTime">--</span>
+              </div>
+            </div>
+            <div class="skyTrack" aria-label="Moon position">
+              <svg viewBox="0 0 240 60" class="skySvg" aria-hidden="true">
+                <path
+                  class="skyArc"
+                  d="M10 50 Q120 6 230 50"
+                  vector-effect="non-scaling-stroke"
+                />
+                <circle class="skyDot moon" id="moonDot" cx="10" cy="50" r="6" />
+              </svg>
+            </div>
+            <div class="skyNote" id="skyNote"></div>
+          </div>
+
+          <div class="status" id="status" role="status"></div>
+        </div>
+
+        <div class="panel" id="airPanel">
+          <div class="panelHead">
+            <h2>Air quality</h2>
+            <div class="panelHint" id="airHint">AQI and pollutants</div>
+          </div>
+          <div class="air" id="air" aria-label="Air quality">
+            <div class="airTop">
+              <div class="airAqi">
+                <div class="k">US AQI</div>
+                <div class="v" id="aqi">--</div>
+              </div>
+              <div class="airCat" id="aqiCat"> </div>
+            </div>
+            <div class="airGrid">
+              <div class="airItem">
+                <div class="k">PM2.5</div>
+                <div class="v" id="pm25">--</div>
+              </div>
+              <div class="airItem">
+                <div class="k">PM10</div>
+                <div class="v" id="pm10">--</div>
+              </div>
+              <div class="airItem">
+                <div class="k">O₃</div>
+                <div class="v" id="o3">--</div>
+              </div>
+              <div class="airItem">
+                <div class="k">NO₂</div>
+                <div class="v" id="no2">--</div>
+              </div>
+            </div>
+            <div class="status" id="airStatus" role="status"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="hourlyPanel">
+          <div class="panelHead">
+            <h2>Next 24 hours</h2>
+            <div class="panelHint" id="hourlyHint"></div>
+          </div>
+          <div class="hourly" id="hourly" aria-label="Hourly forecast">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <div class="panel" id="dailyPanel">
+          <div class="panelHead">
+            <h2>7-day</h2>
+          </div>
+          <div class="dHead" aria-hidden="true">
+            <div></div>
+            <div class="dHeadCell">Precipitation</div>
+            <div class="dHeadCell">High</div>
+            <div class="dHeadCell">Low</div>
+          </div>
+          <div class="daily" id="daily" aria-label="Daily forecast">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <div class="muted"></div>
+      </footer>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
