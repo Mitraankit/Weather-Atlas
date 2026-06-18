@@ -21,7 +21,7 @@
   --shadow: 0 22px 70px rgba(0, 0, 0, 0.44);
   --shadow2: 0 18px 50px rgba(0, 0, 0, 0.34);
   --radius: 18px;
-  --radius2: 26px;
+  --radius2: 36px;
   --surface: rgba(9, 14, 26, 0.86);
   --surface2: rgba(9, 14, 26, 0.74);
   --font: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
@@ -212,7 +212,7 @@ body[data-theme="fog"] {
 .mark {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background:
     radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0) 55%),
     linear-gradient(135deg, rgba(97, 228, 194, 0.8), rgba(138, 169, 255, 0.9));
@@ -236,7 +236,7 @@ body[data-theme="fog"] {
   background: var(--surface2);
   border: 1px solid var(--stroke);
   border-radius: var(--radius2);
-  padding: 14px;
+  padding: 18px;
   box-shadow: var(--shadow2);
 }
 
@@ -249,7 +249,7 @@ body[data-theme="fog"] {
 
 .input {
   height: 44px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   border: 1px solid var(--stroke2);
   background: rgba(0, 0, 0, 0.22);
   color: var(--text);
@@ -271,7 +271,7 @@ body[data-theme="fog"] {
   height: 44px;
   padding: 0 14px;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   font-family: var(--font);
@@ -317,7 +317,7 @@ body[data-theme="fog"] {
   gap: 10px;
   align-items: baseline;
   padding: 10px 10px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   cursor: pointer;
   border: 1px solid transparent;
 }
@@ -340,7 +340,7 @@ body[data-theme="fog"] {
 .content {
   margin-top: 18px;
   display: grid;
-  gap: 14px;
+  gap: 18px;
   grid-template-columns: 1fr;
 }
 
@@ -348,7 +348,7 @@ body[data-theme="fog"] {
   background: var(--surface2);
   border: 1px solid var(--stroke);
   border-radius: var(--radius2);
-  padding: 16px;
+  padding: 18px;
   box-shadow: var(--shadow2);
   overflow: hidden;
   transform: translateY(6px);
@@ -357,7 +357,17 @@ body[data-theme="fog"] {
 }
 
 .panel.hero {
-  padding: 18px;
+  padding: 18px 18px 14px;
+}
+
+.hero .status {
+  min-height: 0;
+  margin-top: 4px; /* 14px panel-bottom + 4px = 18px total, matches system */
+}
+
+#airPanel .status {
+  min-height: 0;
+  margin-top: 0;
 }
 
 .panel:nth-child(2) {
@@ -429,7 +439,7 @@ h2 {
 .badge {
   width: 54px;
   height: 54px;
-  border-radius: 18px;
+  border-radius: var(--radius);
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.15);
   display: grid;
@@ -459,9 +469,9 @@ h2 {
 }
 
 .heroMain {
-  margin-top: 14px;
+  margin-top: 18px;
   display: grid;
-  gap: 12px;
+  gap: 18px;
   grid-template-columns: 1fr;
   align-items: end;
 }
@@ -497,15 +507,15 @@ h2 {
 }
 
 .stats {
-  margin-top: 14px;
+  margin-top: 18px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 18px;
 }
 
 .stat {
   padding: 10px 12px;
-  border-radius: 16px;
+  border-radius: var(--radius);
   background: rgba(0, 0, 0, 0.26);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -543,9 +553,9 @@ h2 {
 }
 
 .sky {
-  margin-top: 12px;
+  margin-top: 18px;
   padding: 12px;
-  border-radius: 18px;
+  border-radius: var(--radius);
   background:
     linear-gradient(
       120deg,
@@ -634,18 +644,18 @@ h2 {
 }
 
 .hourly {
-  margin-top: 12px;
+  margin-top: 18px;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 132px;
-  gap: 10px;
+  gap: 18px;
   overflow-x: auto;
   padding-bottom: 8px;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
 .hCard {
-  border-radius: 18px;
+  border-radius: var(--radius);
   padding: 12px;
   background: rgba(0, 0, 0, 0.24);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -685,9 +695,9 @@ h2 {
 }
 
 .daily {
-  margin-top: 12px;
+  margin-top: 18px;
   display: grid;
-  gap: 10px;
+  gap: 18px;
 }
 
 .dHead {
@@ -713,7 +723,7 @@ h2 {
   gap: 12px;
   align-items: center;
   padding: 12px;
-  border-radius: 18px;
+  border-radius: var(--radius);
   background: rgba(0, 0, 0, 0.24);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -732,7 +742,14 @@ h2 {
   text-overflow: ellipsis;
 }
 
+.dIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .dIcon svg {
+  display: block;
   width: 22px;
   height: 22px;
 }
@@ -794,7 +811,7 @@ h2 {
   }
   .heroMain {
     grid-template-columns: auto 1fr;
-    align-items: end;
+    align-items: center;
   }
   .stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -831,7 +848,7 @@ h2 {
 }
 
 .air {
-  margin-top: 10px;
+  margin-top: 18px;
 }
 
 .airTop {
@@ -863,15 +880,15 @@ h2 {
 }
 
 .airGrid {
-  margin-top: 12px;
+  margin-top: 18px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 18px;
 }
 
 .airItem {
   padding: 10px 12px;
-  border-radius: 16px;
+  border-radius: var(--radius);
   background: rgba(0, 0, 0, 0.24);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
