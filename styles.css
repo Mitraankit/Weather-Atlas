@@ -838,6 +838,30 @@ h2 {
   }
 }
 
+@media (max-width: 600px) {
+  .searchRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .searchRow .input {
+    grid-column: 1 / -1;
+  }
+  .app {
+    padding: 16px 14px 24px;
+  }
+  .panel {
+    padding: 14px;
+  }
+  .panel.hero {
+    padding: 14px 14px 10px;
+  }
+  .tempValue {
+    font-size: 46px;
+  }
+  .name {
+    font-size: 19px;
+  }
+}
+
 @media (max-width: 420px) {
   .dHead {
     grid-template-columns: 1fr 78px 52px 52px;

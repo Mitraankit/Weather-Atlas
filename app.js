@@ -165,6 +165,12 @@ if (saved) {
   selectPlace(DEFAULT_PLACE);
 }
 
+// --- Service worker ---
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => { /* non-fatal */ });
+}
+
 // --- Periodic updates ---
 
 // Advance sun/moon dots every minute without re-fetching data.
