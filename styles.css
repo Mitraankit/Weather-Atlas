@@ -188,6 +188,157 @@ body[data-theme="fog"] {
   }
 }
 
+/* ─── Weather particle FX ─────────────────────────────────────────────── */
+
+.weatherFx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Rain — background layer (thin, slower) */
+.fxDropBg {
+  position: absolute;
+  top: -30px;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(160, 215, 255, 0.45));
+  border-radius: 1px;
+  animation: fxFall linear infinite;
+  will-change: transform;
+}
+
+/* Rain — foreground layer (slightly thicker, faster) */
+.fxDrop {
+  position: absolute;
+  top: -60px;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(190, 232, 255, 0.75) 60%, rgba(140, 205, 255, 0.40) 100%);
+  border-radius: 2px;
+  animation: fxFall linear infinite;
+  will-change: transform;
+}
+
+@keyframes fxFall {
+  from { transform: translateY(-8vh)  rotate(14deg); }
+  to   { transform: translateY(114vh) rotate(14deg); }
+}
+
+/* Storm — subtle flash */
+.fxLightning {
+  position: absolute;
+  inset: 0;
+  background: rgba(200, 222, 255, 0.09);
+  animation: fxFlash 4s ease-in-out infinite;
+}
+
+@keyframes fxFlash {
+  0%, 83%, 91%, 100% { opacity: 0; }
+  84%  { opacity: 1; }
+  86%  { opacity: 0.05; }
+  92%  { opacity: 1; }
+  94%  { opacity: 0; }
+}
+
+/* Snow — soft flakes with gentle glow */
+.fxSnow {
+  position: absolute;
+  top: -16px;
+  border-radius: 50%;
+  background: rgba(238, 249, 255, 0.85);
+  box-shadow: 0 0 5px rgba(210, 238, 255, 0.55), 0 0 10px rgba(180, 220, 255, 0.25);
+  animation: fxSnowFall linear infinite;
+  will-change: transform;
+}
+
+@keyframes fxSnowFall {
+  0%   { transform: translateY(0)     translateX(0px)   rotate(0deg); }
+  25%  { transform: translateY(26vh)  translateX(30px)  rotate(45deg); }
+  50%  { transform: translateY(53vh)  translateX(-14px) rotate(90deg); }
+  75%  { transform: translateY(78vh)  translateX(24px)  rotate(135deg); }
+  100% { transform: translateY(115vh) translateX(-8px)  rotate(180deg); }
+}
+
+/* Fog — wide blurry bands drifting horizontally */
+.fxFog {
+  position: absolute;
+  left: -25%;
+  width: 150%;
+  background: radial-gradient(ellipse at center, rgba(195, 218, 240, 0.65) 0%, transparent 65%);
+  filter: blur(20px);
+  animation: fxFogDrift ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes fxFogDrift {
+  from { transform: translateX(-10%); }
+  to   { transform: translateX(10%); }
+}
+
+/* Clear — golden sun rays pulsing from top */
+.fxRay {
+  position: absolute;
+  top: -4%;
+  height: 68%;
+  transform-origin: top center;
+  background: linear-gradient(to bottom,
+    rgba(255, 225, 90, 0.22) 0%,
+    rgba(255, 205, 60, 0.08) 50%,
+    transparent 100%
+  );
+  filter: blur(16px);
+  animation: fxRayPulse ease-in-out infinite;
+}
+
+@keyframes fxRayPulse {
+  0%, 100% { opacity: 0.22; }
+  50%      { opacity: 0.65; }
+}
+
+/* Cloud — large soft blobs drifting left */
+.fxCloud {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 40% 45%, rgba(215, 230, 245, 0.55) 0%, transparent 68%);
+  filter: blur(28px);
+  animation: fxCloudDrift linear infinite;
+  will-change: transform;
+}
+
+@keyframes fxCloudDrift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-240vw); }
+}
+
+/* Clear night — twinkling stars */
+.fxStar {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  animation: fxStarTwinkle ease-in-out infinite alternate;
+}
+
+@keyframes fxStarTwinkle {
+  from { opacity: var(--star-op, 0.5); transform: scale(1); }
+  to   { opacity: 0.04; transform: scale(0.65); }
+}
+
+/* Wind — horizontal streaks for high-wind conditions */
+.fxWind {
+  position: absolute;
+  left: 110%;
+  height: 1.5px;
+  background: linear-gradient(to right, transparent, rgba(200, 225, 255, 0.5), transparent);
+  border-radius: 1px;
+  animation: fxWindBlast linear infinite;
+  will-change: transform;
+}
+
+@keyframes fxWindBlast {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-130vw); }
+}
+
 .app {
   position: relative;
   z-index: 1;
@@ -337,6 +488,67 @@ body[data-theme="fog"] {
   font-family: var(--mono);
 }
 
+.opt.focused {
+  background: rgba(130, 255, 217, 0.08);
+  border-color: rgba(130, 255, 217, 0.25);
+}
+
+.favs {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+
+.favChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+  user-select: none;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.favChip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.favDel {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--muted2);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transition: color 100ms ease, background 100ms ease;
+}
+
+.favDel:hover {
+  color: var(--bad);
+  background: rgba(255, 138, 165, 0.12);
+}
+
 .content {
   margin-top: 18px;
   display: grid;
@@ -423,6 +635,13 @@ h2 {
   gap: 14px;
 }
 
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .place {
   font-size: 18px;
   font-weight: 760;
@@ -461,6 +680,71 @@ h2 {
 .badge:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(130, 255, 217, 0.14);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.badge.fetching .wxIcon svg {
+  animation: spin 0.85s linear infinite;
+  transform-origin: center;
+}
+
+.unitBtn {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+  user-select: none;
+}
+
+.unitBtn:hover {
+  background: rgba(130, 255, 217, 0.12);
+  border-color: rgba(130, 255, 217, 0.35);
+  transform: translateY(-1px);
+}
+
+.unitBtn:active {
+  transform: translateY(0);
+}
+
+.pinBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+  user-select: none;
+}
+
+.pinBtn:hover:not(:disabled) {
+  background: rgba(255, 215, 138, 0.14);
+  border-color: rgba(255, 215, 138, 0.4);
+  transform: translateY(-1px);
+}
+
+.pinBtn:active {
+  transform: translateY(0);
+}
+
+.pinBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .wxIcon svg {
@@ -573,7 +857,7 @@ h2 {
 
 .skyRow {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
@@ -583,11 +867,20 @@ h2 {
   align-items: center;
   gap: 8px;
   font-weight: 760;
+  line-height: 1;
+}
+
+.skyIcon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
 }
 
 .skyIcon svg {
   width: 18px;
   height: 18px;
+  display: block;
 }
 
 .skyTimes {
@@ -643,8 +936,67 @@ h2 {
   white-space: normal;
 }
 
+/* Temperature arc — lives above hourly cards, mirrors sun/moon arc style */
+.tempArc {
+  position: relative; /* positioning context for the dot div */
+  margin-top: 14px;
+}
+
+.tempArcSvg {
+  width: 100%;
+  height: 76px;
+  display: block;
+}
+
+.tempArcLine {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.88;
+}
+
+/* Temp badge — circle showing current temperature, tracks scroll */
+.tempArcDot {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(9, 14, 26, 0.88);
+  border: 2px solid rgba(255, 205, 90, 0.9);
+  box-shadow: 0 0 14px rgba(255, 205, 90, 0.35);
+  color: rgba(255, 210, 90, 0.97);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: left 80ms linear, top 80ms linear;
+}
+
+.tempArcFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  padding: 0 2px;
+}
+
+.tempArcFooter span {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+.tempArcNow {
+  color: rgba(255, 205, 90, 0.9) !important;
+  font-weight: 700;
+}
+
 .hourly {
-  margin-top: 18px;
+  margin-top: 10px;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 132px;
@@ -652,6 +1004,8 @@ h2 {
   overflow-x: auto;
   padding-bottom: 8px;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
+  mask-image: linear-gradient(to right, black 88%, transparent 100%);
 }
 
 .hCard {
@@ -659,6 +1013,38 @@ h2 {
   padding: 12px;
   background: rgba(0, 0, 0, 0.24);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 2.5px solid var(--tc, rgba(255, 255, 255, 0.14));
+  position: relative;
+  overflow: hidden;
+}
+
+.hCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 55%;
+  background: linear-gradient(to bottom, var(--tc, transparent), transparent);
+  opacity: 0.07;
+  pointer-events: none;
+}
+
+.hCardNow {
+  border-color: rgba(130, 255, 217, 0.35) !important;
+}
+
+.hCardNow::before {
+  opacity: 0;
+}
+
+.hPrecipBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(100, 180, 255, 0.20), transparent);
+  pointer-events: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  min-height: 0;
 }
 
 .hTime {
@@ -694,6 +1080,47 @@ h2 {
   color: var(--muted);
 }
 
+.hSub2 {
+  margin-top: 4px;
+  color: var(--muted2);
+}
+
+.hCardNow {
+  background: rgba(130, 255, 217, 0.06);
+}
+
+.hCardNow .hTime {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.hDaySep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 6px;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.hDaySep span {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--muted2);
+  letter-spacing: 0.5px;
+  border-left: 1.5px solid rgba(255, 255, 255, 0.15);
+  padding-left: 6px;
+  line-height: 1;
+}
+
+.hCardNewDay {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 .daily {
   margin-top: 18px;
   display: grid;
@@ -720,12 +1147,43 @@ h2 {
 .dRow {
   display: grid;
   grid-template-columns: 1fr 84px 56px 56px;
-  gap: 12px;
+  grid-template-rows: auto auto;
+  gap: 12px 12px;
   align-items: center;
   padding: 12px;
   border-radius: var(--radius);
   background: rgba(0, 0, 0, 0.24);
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dPrecipBar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.dPrecipFill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(100, 180, 255, 0.60);
+  transition: width 0.4s ease;
+}
+
+.dTempBar {
+  grid-column: 1 / -1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: -4px;
+}
+
+.dTempFill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(to right, #82c4ff 0%, #b5e0af 30%, #ffd97d 60%, #ff8c5a 80%, #ff6b6b 100%);
 }
 
 .dLeft {
@@ -779,9 +1237,88 @@ h2 {
   letter-spacing: 0.2px;
 }
 
+.offlineBanner {
+  background: rgba(255, 170, 55, 0.10);
+  border: 1px solid rgba(255, 170, 55, 0.28);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--warn);
+}
+
+.shareBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+  user-select: none;
+  padding: 0;
+}
+
+.shareBtn:hover:not(:disabled) {
+  background: rgba(138, 195, 255, 0.14);
+  border-color: rgba(138, 195, 255, 0.40);
+  transform: translateY(-1px);
+}
+
+.shareBtn:active { transform: translateY(0); }
+
+.shareBtn:disabled { opacity: 0.35; cursor: default; }
+
+.inputWrap {
+  position: relative;
+}
+
+.inputWrap .input {
+  width: 100%;
+  padding-right: 36px;
+}
+
+.clearBtn {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted2);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transition: color 100ms ease, background 100ms ease;
+}
+
+.clearBtn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .foot {
   margin-top: 16px;
   padding: 8px 4px 0;
+}
+
+.footLink {
+  color: var(--muted2);
+  text-decoration: none;
+}
+
+.footLink:hover {
+  color: var(--good);
 }
 
 .muted {
@@ -842,7 +1379,7 @@ h2 {
   .searchRow {
     grid-template-columns: 1fr 1fr;
   }
-  .searchRow .input {
+  .searchRow .inputWrap {
     grid-column: 1 / -1;
   }
   .app {
@@ -903,6 +1440,45 @@ h2 {
   text-align: right;
 }
 
+.aqiGauge {
+  margin: 14px 0 6px;
+}
+
+.aqiGaugeTrack {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right,
+    #4caf50 0%,   #4caf50 17%,
+    #ffeb3b 17%,  #ffeb3b 33%,
+    #ff9800 33%,  #ff9800 50%,
+    #f44336 50%,  #f44336 67%,
+    #9c27b0 67%,  #9c27b0 100%
+  );
+}
+
+.aqiGaugeDot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -50%);
+  transition: left 0.4s ease;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.aqiGaugeLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted2);
+}
+
 .airGrid {
   margin-top: 18px;
   display: grid;
@@ -923,11 +1499,314 @@ h2 {
   letter-spacing: 0.2px;
 }
 
+.airSep {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 18px 0 14px;
+}
+
+.airSectionHead {
+  font-size: 13px;
+  font-weight: 720;
+  letter-spacing: 0.2px;
+  margin-bottom: 14px;
+}
+
+.airSectionHint {
+  color: var(--muted2);
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+/* Hourly card glows when the arc dot is above it */
+.hCardActive {
+  box-shadow: 0 0 0 1.5px rgba(255, 205, 90, 0.50), 0 0 16px rgba(255, 205, 90, 0.10);
+}
+
+/* "Feels" stat tooltip */
+.kTip {
+  position: relative;
+  cursor: help;
+  text-decoration: underline dotted rgba(255, 255, 255, 0.28);
+  text-underline-offset: 2px;
+}
+
+.kTip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  white-space: nowrap;
+  background: rgba(9, 14, 26, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 400;
+  font-family: var(--mono);
+  color: var(--text);
+  letter-spacing: normal;
+  text-decoration: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 100;
+}
+
+.kTip:hover::after {
+  opacity: 1;
+}
+
+/* Moon phase emoji sizing — matches the SVG sun icon */
+#moonIcon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* ─── Light mode ──────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg0: #eef3fa;
+    --bg1: #e4edf6;
+    --sky-glow: rgba(80, 130, 215, 0.20);
+    --mint-glow: rgba(70, 190, 160, 0.12);
+    --blob-a-1: rgba(255, 205, 80, 0.55);
+    --blob-a-2: rgba(60, 200, 165, 0.42);
+    --blob-b-1: rgba(100, 150, 255, 0.52);
+    --blob-b-2: rgba(255, 100, 145, 0.16);
+    --grid-opacity: 0.18;
+    --card: rgba(255, 255, 255, 0.70);
+    --card2: rgba(255, 255, 255, 0.88);
+    --stroke: rgba(0, 0, 0, 0.08);
+    --stroke2: rgba(0, 0, 0, 0.14);
+    --text: rgba(12, 18, 32, 0.90);
+    --muted: rgba(12, 18, 32, 0.55);
+    --muted2: rgba(12, 18, 32, 0.40);
+    --good: #006a4e;
+    --warn: #7a5200;
+    --bad: #a01428;
+    --shadow: 0 22px 70px rgba(0, 0, 0, 0.10);
+    --shadow2: 0 18px 50px rgba(0, 0, 0, 0.08);
+    --surface: rgba(255, 255, 255, 0.88);
+    --surface2: rgba(255, 255, 255, 0.78);
+  }
+
+  /* Light-mode theme tints */
+  body[data-theme="clear"] {
+    --bg0: #eaf2fc; --bg1: #deeaf8;
+    --sky-glow: rgba(70, 120, 220, 0.22);
+    --blob-a-1: rgba(255, 210, 80, 0.60); --blob-a-2: rgba(60, 205, 175, 0.46);
+    --blob-b-1: rgba(110, 160, 255, 0.55); --blob-b-2: rgba(255, 140, 180, 0.14);
+  }
+  body[data-theme="cloud"] {
+    --bg0: #eaeff6; --bg1: #e0e9f4;
+    --sky-glow: rgba(80, 120, 190, 0.18);
+    --blob-a-1: rgba(190, 210, 235, 0.40); --blob-a-2: rgba(130, 165, 255, 0.30);
+    --blob-b-1: rgba(145, 175, 215, 0.38); --blob-b-2: rgba(120, 240, 210, 0.14);
+  }
+  body[data-theme="rain"] {
+    --bg0: #e8eef6; --bg1: #dce8f4;
+    --sky-glow: rgba(50, 100, 200, 0.20);
+    --blob-a-1: rgba(90, 220, 190, 0.36); --blob-a-2: rgba(130, 165, 255, 0.26);
+    --blob-b-1: rgba(60, 115, 205, 0.40); --blob-b-2: rgba(255, 210, 130, 0.12);
+  }
+  body[data-theme="snow"] {
+    --bg0: #eaf0fc; --bg1: #e0ecf8;
+    --sky-glow: rgba(60, 140, 220, 0.22);
+    --blob-a-1: rgba(200, 230, 255, 0.50); --blob-a-2: rgba(130, 165, 255, 0.36);
+    --blob-b-1: rgba(190, 220, 255, 0.44); --blob-b-2: rgba(90, 220, 190, 0.14);
+  }
+  body[data-theme="storm"] {
+    --bg0: #e6ecf4; --bg1: #dce5f2;
+    --sky-glow: rgba(55, 80, 180, 0.20);
+    --blob-a-1: rgba(255, 210, 130, 0.28); --blob-a-2: rgba(115, 175, 255, 0.24);
+    --blob-b-1: rgba(85, 115, 250, 0.44); --blob-b-2: rgba(255, 120, 165, 0.12);
+  }
+  body[data-theme="fog"] {
+    --bg0: #eaeef4; --bg1: #e2e9f2;
+    --sky-glow: rgba(80, 120, 175, 0.18);
+    --blob-a-1: rgba(190, 210, 232, 0.32); --blob-a-2: rgba(110, 240, 220, 0.12);
+    --blob-b-1: rgba(145, 175, 210, 0.30); --blob-b-2: rgba(130, 165, 255, 0.16);
+  }
+
+  .grain {
+    mix-blend-mode: multiply;
+    opacity: 0.06;
+  }
+
+  .gridlines {
+    background:
+      linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px) 0 0 / 72px 72px,
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px) 0 0 / 72px 72px;
+  }
+
+  .weatherFx { opacity: 0.45; }
+
+  .input {
+    background: rgba(255, 255, 255, 0.82);
+    color: var(--text);
+  }
+  .input::placeholder { color: rgba(0, 0, 0, 0.32); }
+  .input:focus {
+    border-color: rgba(0, 120, 90, 0.45);
+    box-shadow: 0 0 0 3px rgba(0, 120, 90, 0.10);
+  }
+
+  .btn {
+    border-color: rgba(0, 0, 0, 0.14);
+    background: rgba(0, 0, 0, 0.05);
+  }
+  .btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.20);
+  }
+  .btn.ghost { background: rgba(0, 0, 0, 0.06); }
+
+  .opt:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.10);
+  }
+  .opt.focused {
+    background: rgba(0, 120, 90, 0.06);
+    border-color: rgba(0, 120, 90, 0.22);
+  }
+
+  .suggest { border-top-color: rgba(0, 0, 0, 0.10); }
+  .favs    { border-top-color: rgba(0, 0, 0, 0.10); }
+
+  .favChip {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.04);
+  }
+  .favChip:hover {
+    background: rgba(0, 0, 0, 0.07);
+    border-color: rgba(0, 0, 0, 0.18);
+  }
+  .favDel:hover {
+    background: rgba(160, 20, 40, 0.10);
+  }
+
+  .badge {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.14);
+  }
+  .badge:hover {
+    background: rgba(0, 0, 0, 0.09);
+    border-color: rgba(0, 0, 0, 0.20);
+  }
+
+  .unitBtn {
+    border-color: rgba(0, 0, 0, 0.14);
+    background: rgba(0, 0, 0, 0.05);
+  }
+  .unitBtn:hover {
+    background: rgba(0, 120, 90, 0.10);
+    border-color: rgba(0, 120, 90, 0.30);
+  }
+
+  .pinBtn {
+    border-color: rgba(0, 0, 0, 0.14);
+    background: rgba(0, 0, 0, 0.05);
+  }
+  .pinBtn:hover:not(:disabled) {
+    background: rgba(122, 82, 0, 0.10);
+    border-color: rgba(122, 82, 0, 0.32);
+  }
+
+  .shareBtn {
+    border-color: rgba(0, 0, 0, 0.14);
+    background: rgba(0, 0, 0, 0.05);
+  }
+  .shareBtn:hover:not(:disabled) {
+    background: rgba(0, 90, 180, 0.10);
+    border-color: rgba(0, 90, 180, 0.30);
+  }
+
+  .clearBtn:hover {
+    background: rgba(0, 0, 0, 0.07);
+  }
+
+  .stat {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.09);
+  }
+
+  .sky {
+    background:
+      linear-gradient(120deg,
+        rgba(60, 200, 165, 0.10),
+        rgba(100, 150, 255, 0.08),
+        rgba(255, 205, 80, 0.08),
+        rgba(255, 100, 145, 0.06)
+      ),
+      rgba(255, 255, 255, 0.55);
+    border-color: rgba(0, 0, 0, 0.09);
+  }
+
+  .skyArc { stroke: rgba(0, 0, 0, 0.15); }
+
+  .tempArcDot {
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .hCard {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.09);
+    border-top-color: var(--tc, rgba(0, 0, 0, 0.12));
+  }
+  .hCardNow {
+    background: rgba(0, 120, 90, 0.06);
+    border-color: rgba(0, 150, 110, 0.30) !important;
+  }
+  .hDaySep span {
+    border-left-color: rgba(0, 0, 0, 0.14);
+  }
+  .hCardActive {
+    box-shadow: 0 0 0 1.5px rgba(200, 140, 0, 0.45), 0 0 14px rgba(200, 140, 0, 0.08);
+  }
+
+  .dRow {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.09);
+  }
+  .dPrecipBar { background: rgba(0, 0, 0, 0.08); }
+  .dTempBar   { background: rgba(0, 0, 0, 0.08); }
+
+  .airItem {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.09);
+  }
+  .airSep { background: rgba(0, 0, 0, 0.08); }
+
+  .kTip {
+    text-decoration-color: rgba(0, 0, 0, 0.28);
+  }
+  .kTip::after {
+    background: rgba(240, 244, 252, 0.98);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: var(--text);
+  }
+
+  .offlineBanner {
+    background: rgba(122, 82, 0, 0.07);
+    border-color: rgba(122, 82, 0, 0.22);
+  }
+
+  .scrollbar-color { scrollbar-color: rgba(0, 0, 0, 0.18) transparent; }
+  .hourly { scrollbar-color: rgba(0, 0, 0, 0.18) transparent; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .panel {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+  .blob, .fxStar, .fxWind, .fxDropBg, .fxDrop, .fxSnow, .fxFog, .fxRay, .fxCloud, .fxLightning {
+    animation: none;
   }
   .blob {
     animation: none;
@@ -937,5 +1816,11 @@ h2 {
   }
   .sky {
     animation: none;
+  }
+  .badge.fetching .wxIcon svg {
+    animation: none;
+  }
+  .aqiGaugeDot, .tempArcDot {
+    transition: none;
   }
 }

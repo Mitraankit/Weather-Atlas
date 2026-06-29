@@ -1,4 +1,4 @@
-const CACHE = 'weather-atlas-v1';
+const CACHE = 'weather-atlas-v14';
 
 const STATIC = [
   './',
@@ -12,6 +12,8 @@ const STATIC = [
   './sky.js',
   './utils.js',
   './weather.js',
+  './unit.js',
+  './favorites.js',
   './manifest.json',
   './icons/icon.svg',
 ];

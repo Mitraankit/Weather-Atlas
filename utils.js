@@ -40,10 +40,23 @@ export function fmtTempC(n) {
   return `${Math.round(n)}°C`;
 }
 
-export function fmtWind(kmh, deg) {
+export function fmtTemp(n, unit = "C") {
+  if (typeof n !== "number" || !Number.isFinite(n)) return "--";
+  if (unit === "F") return `${Math.round(n * 9 / 5 + 32)}°F`;
+  return `${Math.round(n)}°C`;
+}
+
+export function fmtWindSpeed(kmh, unit = "C") {
+  if (!Number.isFinite(kmh)) return "--";
+  if (unit === "F") return `${Math.round(kmh * 0.621371)} mph`;
+  return `${Math.round(kmh)} km/h`;
+}
+
+export function fmtWind(kmh, deg, unit = "C") {
   if (!Number.isFinite(kmh)) return "--";
   const d = Number.isFinite(deg) ? ` ${degToCompass(deg)}` : "";
-  return `${Math.round(kmh)} km/h${d}`;
+  const speed = unit === "F" ? `${Math.round(kmh * 0.621371)} mph` : `${Math.round(kmh)} km/h`;
+  return `${speed}${d}`;
 }
 
 export function fmtWindDir(deg) {

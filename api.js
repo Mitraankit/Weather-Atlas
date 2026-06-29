@@ -59,7 +59,7 @@ export async function fetchForecast(lat, lon) {
     `&longitude=${encodeURIComponent(lon)}` +
     "&timezone=auto" +
     "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m" +
-    "&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,uv_index,visibility,dew_point_2m,surface_pressure" +
+    "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,uv_index,visibility,dew_point_2m,surface_pressure,cloud_cover" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,sunrise,sunset,uv_index_max";
   return await fetchJson(url);
 }

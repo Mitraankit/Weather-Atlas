@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="preconnect" href="https://api.open-meteo.com" />
+    <link rel="preconnect" href="https://geocoding-api.open-meteo.com" />
+    <link rel="preconnect" href="https://air-quality-api.open-meteo.com" />
     <title>Weather Atlas</title>
     <meta name="description" content="A fast, dependency-free weather app using Open-Meteo." />
     <meta name="theme-color" content="#0b1230" />
@@ -20,9 +24,11 @@
       <div class="blob blob-a"></div>
       <div class="blob blob-b"></div>
       <div class="gridlines"></div>
+      <div id="weatherFx" class="weatherFx"></div>
     </div>
 
     <main class="app">
+      <div class="offlineBanner" id="offlineBanner" hidden>Offline &mdash; showing cached data</div>
       <header class="top">
         <div class="brand">
           <div class="mark" aria-hidden="true"></div>
@@ -35,20 +41,26 @@
         <form class="search" id="searchForm" autocomplete="off">
           <label class="sr-only" for="q">Search city</label>
           <div class="searchRow">
-            <input
-              id="q"
-              name="q"
-              class="input"
-              placeholder="Search a city, e.g. Pune, New York, Tokyo"
-              inputmode="search"
-              spellcheck="false"
-            />
+            <div class="inputWrap">
+              <input
+                id="q"
+                name="q"
+                class="input"
+                placeholder="Search a city, e.g. Pune, New York, Tokyo"
+                inputmode="search"
+                spellcheck="false"
+              />
+              <button class="clearBtn" id="clearBtn" type="button" aria-label="Clear search" hidden>&#10005;</button>
+            </div>
             <button class="btn" type="submit" id="searchBtn">Search</button>
             <button class="btn ghost" type="button" id="locateBtn">
               Use my location
             </button>
           </div>
           <div class="suggest" id="suggest" role="listbox" aria-label="Results">
+            <!-- populated by JS -->
+          </div>
+          <div class="favs" id="favs" hidden>
             <!-- populated by JS -->
           </div>
         </form>
@@ -61,15 +73,22 @@
               <div class="place" id="place">Search a city to begin</div>
               <div class="meta" id="meta"> </div>
             </div>
-            <button
-              class="badge"
-              id="badge"
-              type="button"
-              title="Refresh"
-              aria-label="Refresh weather"
-            >
-              <span class="wxIcon" id="wxIcon"></span>
-            </button>
+            <div class="heroActions">
+              <button class="unitBtn" id="unitBtn" type="button" title="Toggle °C / °F">°C</button>
+              <button class="shareBtn" id="shareBtn" type="button" aria-label="Copy link" title="Copy link" disabled>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-4M10 2h4m0 0v4m0-4L7 9"/></svg>
+              </button>
+              <button class="pinBtn" id="pinBtn" type="button" aria-label="Save to favorites" title="Save to favorites" disabled>☆</button>
+              <button
+                class="badge"
+                id="badge"
+                type="button"
+                title="Refresh"
+                aria-label="Refresh weather"
+              >
+                <span class="wxIcon" id="wxIcon"></span>
+              </button>
+            </div>
           </div>
 
           <div class="heroMain">
@@ -85,7 +104,7 @@
 
           <div class="stats" id="stats" hidden>
             <div class="stat">
-              <div class="k">Feels</div>
+              <div class="k kTip" data-tip="Accounts for humidity &amp; wind chill">Feels</div>
               <div class="v" id="feels">--</div>
             </div>
             <div class="stat">
@@ -201,6 +220,14 @@
               </div>
               <div class="airCat" id="aqiCat"> </div>
             </div>
+            <div class="aqiGauge" id="aqiGauge" hidden>
+              <div class="aqiGaugeTrack">
+                <div class="aqiGaugeDot" id="aqiGaugeDot"></div>
+              </div>
+              <div class="aqiGaugeLabels">
+                <span>Good</span><span>Moderate</span><span>Unhealthy</span><span>Very bad</span>
+              </div>
+            </div>
             <div class="airGrid">
               <div class="airItem">
                 <div class="k">PM2.5</div>
@@ -219,6 +246,7 @@
                 <div class="v" id="no2">--</div>
               </div>
             </div>
+
             <div class="status" id="airStatus" role="status"></div>
           </div>
         </div>
@@ -228,6 +256,7 @@
             <h2>Next 24 hours</h2>
             <div class="panelHint" id="hourlyHint"></div>
           </div>
+          <div class="tempArc" id="tempArc" hidden></div>
           <div class="hourly" id="hourly" aria-label="Hourly forecast">
             <!-- populated by JS -->
           </div>
@@ -250,7 +279,7 @@
       </section>
 
       <footer class="foot">
-        <div class="muted"></div>
+        <div class="muted">Weather data &middot; <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" class="footLink">Open-Meteo</a> &middot; free &amp; open-source</div>
       </footer>
     </main>
 

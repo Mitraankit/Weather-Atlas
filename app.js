@@ -2,14 +2,18 @@
 // State lives here; everything else is delegated to focused modules.
 
 import { els } from "./els.js";
-import { debounce } from "./utils.js";
+import { debounce, escapeHtml } from "./utils.js";
 import { searchCity, reverseGeocodeClient, placeFromReverseGeocode, fetchForecast, fetchAirQuality } from "./api.js";
 import { setStatus, setSuggestions, renderHero, renderHourly, renderDaily, renderAirQuality } from "./render.js";
 import { renderSky } from "./sky.js";
+import { getUnit, toggleUnit } from "./unit.js";
+import { getFavorites, isFavorite, removeFavorite, toggleFavorite } from "./favorites.js";
 
 // --- Constants ---
 
 const STORE_KEY = "weather-atlas:lastPlace";
+const STALE_KEY = "weather-atlas:stale";
+
 const DEFAULT_PLACE = {
   name: "Pune",
   admin1: "Maharashtra",
@@ -36,17 +40,118 @@ function loadPlace() {
   }
 }
 
+function saveStale(data) {
+  try { localStorage.setItem(STALE_KEY, JSON.stringify({ ...data, ts: Date.now() })); } catch {}
+}
+
+function loadStale() {
+  try { return JSON.parse(localStorage.getItem(STALE_KEY) || "null"); } catch { return null; }
+}
+
+// --- URL state ---
+
+function pushUrl(place) {
+  try {
+    const p = new URLSearchParams();
+    p.set("lat", place.latitude.toFixed(4));
+    p.set("lon", place.longitude.toFixed(4));
+    p.set("name", [place.name, place.admin1, place.country].filter(Boolean).join(", "));
+    history.replaceState(null, "", `?${p}`);
+  } catch { /* ignore */ }
+}
+
+function placeFromUrl() {
+  try {
+    const p = new URLSearchParams(location.search);
+    const lat = parseFloat(p.get("lat"));
+    const lon = parseFloat(p.get("lon"));
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    const parts = (p.get("name") || "").split(",").map(s => s.trim());
+    return { name: parts[0] || "Location", admin1: parts[1] || "", country: parts[2] || "", latitude: lat, longitude: lon };
+  } catch { return null; }
+}
+
 // --- App state ---
 
-let forecastSeq = 0; // incremented each fetch; stale responses are discarded
+let forecastSeq = 0;
 let searchSeq   = 0;
 let lastPlace   = null;
+let lastRender  = null; // { forecast, air, place } — used for unit re-renders
+
+// --- Fetching indicator ---
+
+function setFetching(v) {
+  els.badge.classList.toggle("fetching", v);
+}
+
+// --- Offline banner ---
+
+function syncOfflineBanner() {
+  els.offlineBanner.hidden = navigator.onLine;
+}
+window.addEventListener("offline", syncOfflineBanner);
+window.addEventListener("online", () => {
+  syncOfflineBanner();
+  if (lastPlace) selectPlace(lastPlace, { silent: true });
+});
+syncOfflineBanner();
+
+// --- Favorites UI ---
+
+function updatePinBtn() {
+  if (!lastPlace) {
+    els.pinBtn.disabled = true;
+    els.pinBtn.textContent = "☆";
+    els.shareBtn.disabled = true;
+    return;
+  }
+  els.pinBtn.disabled = false;
+  els.shareBtn.disabled = false;
+  const fav = isFavorite(lastPlace);
+  els.pinBtn.textContent = fav ? "★" : "☆";
+  els.pinBtn.title = fav ? "Remove from favorites" : "Save to favorites";
+  els.pinBtn.setAttribute("aria-label", fav ? "Remove from favorites" : "Save to favorites");
+}
+
+function renderFavs() {
+  const favs = getFavorites();
+  els.favs.hidden = !favs.length;
+  if (!favs.length) { els.favs.innerHTML = ""; return; }
+
+  els.favs.innerHTML = favs.map((f, i) => {
+    const label = escapeHtml([f.name, f.admin1, f.country].filter(Boolean).join(", "));
+    return `<div class="favChip" role="button" tabindex="0" data-idx="${i}">${label}<button class="favDel" data-idx="${i}" type="button" aria-label="Remove ${escapeHtml(f.name)} from favorites">×</button></div>`;
+  }).join("");
+
+  els.favs.querySelectorAll(".favChip").forEach((chip) => {
+    const idx = Number(chip.dataset.idx);
+    chip.addEventListener("click", (e) => {
+      if (e.target.closest(".favDel")) return;
+      selectPlace(favs[idx]);
+    });
+    chip.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".favDel")) {
+        e.preventDefault();
+        selectPlace(favs[idx]);
+      }
+    });
+  });
+
+  els.favs.querySelectorAll(".favDel").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeFavorite(favs[Number(btn.dataset.idx)]);
+      renderFavs();
+    });
+  });
+}
 
 // --- Core action: fetch data for a place and render everything ---
 
 async function selectPlace(place, { silent = false } = {}) {
   lastPlace = place;
   const my = ++forecastSeq;
+  setFetching(true);
   if (!silent) setStatus("Fetching forecast…");
   if (!silent) els.airStatus.textContent = "";
   try {
@@ -58,23 +163,40 @@ async function selectPlace(place, { silent = false } = {}) {
         return null;
       }),
     ]);
-    if (my !== forecastSeq) return; // superseded by a newer request
+    if (my !== forecastSeq) return;
+    lastRender = { forecast, air, place };
+    saveStale({ forecast, air, place });
     renderHero({ place, forecast });
     renderHourly(forecast);
     renderDaily(forecast);
     renderAirQuality(air);
     if (!silent) setStatus("");
+    pushUrl(place);
+    updatePinBtn();
   } catch (err) {
     if (my !== forecastSeq) return;
-    if (!silent) setStatus(
-      `Could not fetch forecast. ${
-        err?.name === "AbortError"
-          ? "Timed out."
-          : "Check internet, and open via http://localhost (not file://)."
-      } ${err?.message ? `(${String(err.message).slice(0, 80)})` : ""}`,
-      "bad",
-    );
+    const stale = loadStale();
+    if (stale?.forecast && stale?.place) {
+      lastRender = { forecast: stale.forecast, air: stale.air, place: stale.place };
+      renderHero({ place: stale.place, forecast: stale.forecast });
+      renderHourly(stale.forecast);
+      renderDaily(stale.forecast);
+      renderAirQuality(stale.air ?? null);
+      const age = Math.round((Date.now() - (stale.ts || 0)) / 60000);
+      setStatus(`Offline — showing cached data from ${age} min ago.`, "warn");
+    } else if (!silent) {
+      setStatus(
+        `Could not fetch forecast. ${
+          err?.name === "AbortError"
+            ? "Timed out."
+            : "Check internet, and open via http://localhost (not file://)."
+        } ${err?.message ? `(${String(err.message).slice(0, 80)})` : ""}`,
+        "bad",
+      );
+    }
     console.error("Forecast fetch failed:", err);
+  } finally {
+    setFetching(false);
   }
 }
 
@@ -108,7 +230,10 @@ function locate() {
 
 // --- Search (typeahead + form submit) ---
 
+let suggestIdx = -1;
+
 const onType = debounce(async () => {
+  suggestIdx = -1;
   const q = els.q.value.trim();
   if (q.length < 3) { setSuggestions([], selectPlace); return; }
   const my = ++searchSeq;
@@ -123,12 +248,38 @@ const onType = debounce(async () => {
 }, 220);
 
 els.q.addEventListener("input", onType);
-els.q.addEventListener("keydown", (e) => { if (e.key === "Escape") setSuggestions([], selectPlace); });
+
+els.q.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    setSuggestions([], selectPlace);
+    suggestIdx = -1;
+    return;
+  }
+  const opts = Array.from(els.suggest.querySelectorAll(".opt"));
+  if (!opts.length) return;
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    suggestIdx = (suggestIdx + 1) % opts.length;
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    suggestIdx = (suggestIdx - 1 + opts.length) % opts.length;
+  } else if (e.key === "Enter" && suggestIdx >= 0) {
+    e.preventDefault();
+    opts[suggestIdx]?.click();
+    suggestIdx = -1;
+    return;
+  } else {
+    return;
+  }
+  opts.forEach((el, i) => el.classList.toggle("focused", i === suggestIdx));
+  opts[suggestIdx]?.scrollIntoView({ block: "nearest" });
+});
 
 els.form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const q = els.q.value.trim();
   setSuggestions([], selectPlace);
+  suggestIdx = -1;
   if (q.length < 2) { setStatus("Type a city name first.", "warn"); return; }
 
   setStatus("Searching…");
@@ -150,20 +301,119 @@ els.form.addEventListener("submit", async (e) => {
 
 els.locateBtn.addEventListener("click", locate);
 
+els.shareBtn.addEventListener("click", async () => {
+  const url   = location.href;
+  const title = `${els.place.textContent} — Weather Atlas`;
+
+  // Native share sheet on mobile (iOS / Android)
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, url });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return; // user dismissed sheet
+    }
+  }
+
+  // Clipboard API (requires HTTPS or localhost)
+  let copied = false;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+      copied = true;
+    } else {
+      const ta = Object.assign(document.createElement("textarea"), { value: url });
+      ta.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      copied = document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+  } catch { /* ignore */ }
+
+  if (copied) {
+    els.shareBtn.title = "Copied!";
+    els.shareBtn.setAttribute("aria-label", "Copied!");
+    setTimeout(() => {
+      els.shareBtn.title = "Copy link";
+      els.shareBtn.setAttribute("aria-label", "Copy link");
+    }, 1800);
+  } else {
+    prompt("Copy this link:", url);
+  }
+});
+
+els.q.addEventListener("input", () => {
+  els.clearBtn.hidden = !els.q.value;
+});
+els.clearBtn.addEventListener("click", () => {
+  els.q.value = "";
+  els.clearBtn.hidden = true;
+  setSuggestions([], selectPlace);
+  els.q.focus();
+});
+
 els.badge.addEventListener("click", () => {
   if (!lastPlace) { setStatus("Search a city first.", "warn"); return; }
   selectPlace(lastPlace);
 });
 
+els.pinBtn.addEventListener("click", () => {
+  if (!lastPlace) return;
+  toggleFavorite(lastPlace);
+  updatePinBtn();
+  renderFavs();
+});
+
+els.unitBtn.addEventListener("click", () => {
+  const unit = toggleUnit();
+  els.unitBtn.textContent = unit === "C" ? "°C" : "°F";
+  if (lastRender) {
+    const { forecast, air, place } = lastRender;
+    renderHero({ place, forecast });
+    renderHourly(forecast);
+    renderDaily(forecast);
+  }
+});
+
 // --- Bootstrap ---
 
-const saved = loadPlace();
-if (saved) {
-  selectPlace(saved);
+// Sync unitBtn label to persisted preference on load
+els.unitBtn.textContent = getUnit() === "C" ? "°C" : "°F";
+
+const fromUrl = placeFromUrl();
+if (fromUrl) {
+  selectPlace(fromUrl);
 } else {
-  els.q.value = `${DEFAULT_PLACE.name}, ${DEFAULT_PLACE.admin1}, ${DEFAULT_PLACE.country}`;
-  selectPlace(DEFAULT_PLACE);
+  const saved = loadPlace();
+  if (saved) {
+    selectPlace(saved);
+  } else {
+    tryAutoLocate();
+  }
 }
+
+function tryAutoLocate() {
+  if (!navigator.geolocation) { selectPlace(DEFAULT_PLACE); return; }
+  setStatus("Detecting your location…");
+  const fallback = setTimeout(() => selectPlace(DEFAULT_PLACE), 5000);
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      clearTimeout(fallback);
+      const { latitude: lat, longitude: lon } = pos.coords;
+      try {
+        const data = await reverseGeocodeClient(lat, lon);
+        await selectPlace(placeFromReverseGeocode(data, lat, lon));
+      } catch {
+        await selectPlace({ name: "My location", admin1: "", country: "", latitude: lat, longitude: lon });
+      }
+    },
+    () => { clearTimeout(fallback); selectPlace(DEFAULT_PLACE); },
+    { enableHighAccuracy: false, timeout: 4500, maximumAge: 300000 },
+  );
+}
+
+renderFavs();
 
 // --- Service worker ---
 

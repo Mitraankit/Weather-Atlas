@@ -8,7 +8,14 @@
 
 import { els } from "./els.js";
 import { clamp, fmtTimeLabel, fmtClockFromUtcMs, fmtNowInTz } from "./utils.js";
-import { iconSunSvg, iconMoonSvg } from "./icons.js";
+import { iconSunSvg } from "./icons.js";
+
+function moonPhaseEmoji(nowMs) {
+  const KNOWN_NEW = 947178840000; // 2000-01-06T18:14:00Z
+  const CYCLE_MS  = 29.53059 * 86400 * 1000;
+  const phase = ((nowMs - KNOWN_NEW) % CYCLE_MS + CYCLE_MS) % CYCLE_MS / CYCLE_MS;
+  return ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"][Math.round(phase * 8) % 8];
+}
 
 // Shared state — set by renderHero() via setLastSky() each time data loads.
 let lastSky = null;
@@ -188,8 +195,8 @@ export function renderSky() {
   const daily  = forecast?.daily;
   const nowUtc = Date.now();
 
-  els.sunIcon.innerHTML  = iconSunSvg();
-  els.moonIcon.innerHTML = iconMoonSvg();
+  els.sunIcon.innerHTML   = iconSunSvg();
+  els.moonIcon.textContent = moonPhaseEmoji(nowUtc);
   els.sunNow.textContent  = fmtNowInTz(tz);
   els.moonNow.textContent = fmtNowInTz(tz);
 
