@@ -65,4 +65,8 @@ export const els = {
   shareBtn:    $("shareBtn"),
   aqiGauge:    $("aqiGauge"),
   aqiGaugeDot: $("aqiGaugeDot"),
+  themeToggleBtn: $("themeToggleBtn"),
+  recents:     $("recents"),
+  hourlyOuter: $("hourlyOuter"),
+  hourlyScrollHint: $("hourlyScrollHint"),
 };

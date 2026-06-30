@@ -4,10 +4,11 @@
 import { els } from "./els.js";
 import { debounce, escapeHtml } from "./utils.js";
 import { searchCity, reverseGeocodeClient, placeFromReverseGeocode, fetchForecast, fetchAirQuality } from "./api.js";
-import { setStatus, setSuggestions, renderHero, renderHourly, renderDaily, renderAirQuality } from "./render.js";
+import { setStatus, setSuggestions, renderHero, renderHourly, renderDaily, renderAirQuality, showLoadingState } from "./render.js";
 import { renderSky } from "./sky.js";
 import { getUnit, toggleUnit } from "./unit.js";
 import { getFavorites, isFavorite, removeFavorite, toggleFavorite } from "./favorites.js";
+import { getRecents, addRecent } from "./recents.js";
 
 // --- Constants ---
 
@@ -77,6 +78,74 @@ let forecastSeq = 0;
 let searchSeq   = 0;
 let lastPlace   = null;
 let lastRender  = null; // { forecast, air, place } — used for unit re-renders
+
+// --- Theme toggle ---
+
+const THEME_KEY = "weather-atlas:theme";
+const THEME_CYCLE = ["auto", "light", "dark"];
+const THEME_ICONS  = { auto: "⊙", light: "☀", dark: "☾" };
+const THEME_LABELS = {
+  auto:  "Appearance: auto (follows system)",
+  light: "Appearance: light",
+  dark:  "Appearance: dark",
+};
+
+let currentColorMode = localStorage.getItem(THEME_KEY) || "auto";
+
+function applyColorMode(mode) {
+  currentColorMode = mode;
+  const html = document.documentElement;
+  if (mode === "auto") {
+    html.removeAttribute("data-cm");
+  } else {
+    html.setAttribute("data-cm", mode);
+  }
+  els.themeToggleBtn.textContent = THEME_ICONS[mode] || "⊙";
+  els.themeToggleBtn.title       = THEME_LABELS[mode] || THEME_LABELS.auto;
+  els.themeToggleBtn.setAttribute("aria-label", THEME_LABELS[mode] || THEME_LABELS.auto);
+  try { localStorage.setItem(THEME_KEY, mode); } catch {}
+}
+
+els.themeToggleBtn.addEventListener("click", () => {
+  const idx  = THEME_CYCLE.indexOf(currentColorMode);
+  const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
+  applyColorMode(next);
+});
+
+applyColorMode(currentColorMode);
+
+// --- Recents ---
+
+function renderRecents() {
+  const recents = getRecents();
+  els.recents.hidden = !recents.length;
+  if (!recents.length) { els.recents.innerHTML = ""; return; }
+
+  els.recents.innerHTML = `
+    <div class="recentsLabel">Recent</div>
+    <div class="recentsList">
+      ${recents.map((r, i) => {
+        const label = escapeHtml([r.name, r.admin1, r.country].filter(Boolean).join(", "));
+        return `<div class="recentChip" role="button" tabindex="0" data-idx="${i}">⏱ ${label}</div>`;
+      }).join("")}
+    </div>`;
+
+  els.recents.querySelectorAll(".recentChip").forEach((chip) => {
+    const idx = Number(chip.dataset.idx);
+    chip.addEventListener("click", () => selectPlace(recents[idx]));
+    chip.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectPlace(recents[idx]); }
+    });
+  });
+}
+
+// --- Hourly scroll hint ---
+
+els.hourly.addEventListener("scroll", () => {
+  if (els.hourly.scrollLeft > 20) {
+    els.hourlyOuter.classList.add("scrolled");
+  }
+}, { passive: true });
 
 // --- Fetching indicator ---
 
@@ -152,8 +221,12 @@ async function selectPlace(place, { silent = false } = {}) {
   lastPlace = place;
   const my = ++forecastSeq;
   setFetching(true);
-  if (!silent) setStatus("Fetching forecast…");
-  if (!silent) els.airStatus.textContent = "";
+  if (!silent) {
+    setStatus("Fetching forecast…");
+    els.airStatus.textContent = "";
+    showLoadingState();
+    els.hourlyOuter.classList.remove("scrolled");
+  }
   try {
     savePlace(place);
     const [forecast, air] = await Promise.all([
@@ -173,6 +246,8 @@ async function selectPlace(place, { silent = false } = {}) {
     if (!silent) setStatus("");
     pushUrl(place);
     updatePinBtn();
+    addRecent(place);
+    renderRecents();
   } catch (err) {
     if (my !== forecastSeq) return;
     const stale = loadStale();
@@ -414,6 +489,7 @@ function tryAutoLocate() {
 }
 
 renderFavs();
+renderRecents();
 
 // --- Service worker ---
 

@@ -19,6 +19,62 @@ import { getUnit } from "./unit.js";
 // Arc state shared with the hourly scroll handler
 let _arcState = null;
 
+// --- Skeleton loading state ---
+
+export function showLoadingState() {
+  const skEl = (w, h, radius = "5px") =>
+    `<span class="skeletonLine" style="width:${w}px;height:${h}px;border-radius:${radius}"></span>`;
+
+  els.hourly.innerHTML = Array.from({ length: 8 }, () => `
+    <div class="hCard">
+      <div class="hTime">${skEl(38, 11)}</div>
+      <div class="hMain">
+        <div class="hTemp">${skEl(32, 22)}</div>
+        <div class="hIcon">${skEl(26, 26, "50%")}</div>
+      </div>
+      <div class="hSub">
+        ${skEl(28, 10)}&nbsp;&nbsp;${skEl(36, 10)}
+      </div>
+    </div>`).join("");
+  els.tempArc.hidden = true;
+
+  els.daily.innerHTML = Array.from({ length: 7 }, () => `
+    <div class="dRow">
+      <div class="dLeft">
+        <div class="dIcon">${skEl(22, 22, "50%")}</div>
+        <div class="dName">${skEl(88, 14)}</div>
+      </div>
+      <div class="dMid">${skEl(52, 13)}</div>
+      <div class="dHi">${skEl(28, 14)}</div>
+      <div class="dLo">${skEl(28, 14)}</div>
+    </div>`).join("");
+
+  els.aqi.innerHTML        = skEl(44, 30);
+  els.aqiCat.textContent   = "";
+  els.aqiGauge.hidden      = true;
+  els.pm25.innerHTML       = skEl(72, 14);
+  els.pm10.innerHTML       = skEl(72, 14);
+  els.o3.innerHTML         = skEl(72, 14);
+  els.no2.innerHTML        = skEl(72, 14);
+}
+
+// --- Wind compass SVG ---
+
+function compassSvg(deg) {
+  if (!Number.isFinite(deg)) return "";
+  return `<svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true" style="flex-shrink:0">
+    <circle cx="16" cy="16" r="14" fill="rgba(0,0,0,0.22)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <text x="16" y="5.5" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.4)" font-size="5" font-family="monospace" font-weight="700">N</text>
+    <text x="16" y="27.5" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.35)" font-size="5" font-family="monospace">S</text>
+    <text x="4.5" y="16.5" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.35)" font-size="5" font-family="monospace">W</text>
+    <text x="27.5" y="16.5" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.35)" font-size="5" font-family="monospace">E</text>
+    <g transform="rotate(${deg}, 16, 16)">
+      <polygon points="16,4 14,17 18,17" fill="rgba(255,90,90,0.92)"/>
+      <polygon points="16,28 14,17 18,17" fill="rgba(255,255,255,0.38)"/>
+    </g>
+  </svg>`;
+}
+
 // --- Weather particle FX ---
 let _lastFxTheme = null;
 
@@ -251,7 +307,7 @@ export function renderHero({ place, forecast }) {
   }
   els.hum.textContent   = curr?.relative_humidity_2m != null ? `${Math.round(curr.relative_humidity_2m)}%` : "--";
   els.wind.textContent  = fmtWind(curr?.wind_speed_10m, curr?.wind_direction_10m, unit);
-  els.windDir.innerHTML = `<span class="vIcon">${iconWindArrowSvg(curr?.wind_direction_10m)}<span>${escapeHtml(fmtWindDir(curr?.wind_direction_10m))}</span></span>`;
+  els.windDir.innerHTML = `<span class="compassWrap">${compassSvg(curr?.wind_direction_10m)}<span>${escapeHtml(fmtWindDir(curr?.wind_direction_10m))}</span></span>`;
   els.precip.innerHTML  = curr?.precipitation != null
     ? `<span class="vIcon">${iconDropletSvg()}<span>${escapeHtml(`${curr.precipitation.toFixed(1)} mm`)}</span></span>`
     : "--";
@@ -302,7 +358,7 @@ export function renderHourly(forecast) {
   const times = h?.time;
 
   if (!Array.isArray(times) || times.length === 0) {
-    els.hourly.innerHTML       = "";
+    els.hourly.innerHTML       = `<div class="emptyState"><span class="emptyStateIcon">🕐</span>Search a city to see the hourly forecast</div>`;
     els.hourlyHint.textContent = "";
     els.tempArc.hidden         = true;
     return;
@@ -473,7 +529,7 @@ export function renderDaily(forecast) {
   const times = d?.time;
 
   if (!Array.isArray(times) || times.length === 0) {
-    els.daily.innerHTML = "";
+    els.daily.innerHTML = `<div class="emptyState"><span class="emptyStateIcon">📅</span>Search a city to see the 7-day forecast</div>`;
     return;
   }
 
@@ -534,7 +590,7 @@ export function renderDaily(forecast) {
 export function renderAirQuality(air) {
   if (!air?.current) {
     els.aqi.textContent    = "--";
-    els.aqiCat.textContent = "Air quality unavailable";
+    els.aqiCat.textContent = air === null ? "Search a city above" : "Air quality unavailable";
     els.aqiCat.style.color = "var(--muted)";
     els.pm25.textContent   = "--";
     els.pm10.textContent   = "--";

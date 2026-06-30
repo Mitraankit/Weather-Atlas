@@ -30,12 +30,13 @@
     <main class="app">
       <div class="offlineBanner" id="offlineBanner" hidden>Offline &mdash; showing cached data</div>
       <header class="top">
-        <div class="brand">
+        <div class="brand brandRow">
           <div class="mark" aria-hidden="true"></div>
           <div>
             <div class="name">Weather Atlas</div>
             <div class="tag">Current, hourly, and 7-day forecast</div>
           </div>
+          <button class="themeToggleBtn" id="themeToggleBtn" type="button" title="Appearance: auto" aria-label="Toggle appearance">⊙</button>
         </div>
 
         <form class="search" id="searchForm" autocomplete="off">
@@ -61,6 +62,9 @@
             <!-- populated by JS -->
           </div>
           <div class="favs" id="favs" hidden>
+            <!-- populated by JS -->
+          </div>
+          <div class="recents" id="recents" hidden>
             <!-- populated by JS -->
           </div>
         </form>
@@ -103,53 +107,68 @@
           </div>
 
           <div class="stats" id="stats" hidden>
-            <div class="stat">
-              <div class="k kTip" data-tip="Accounts for humidity &amp; wind chill">Feels</div>
-              <div class="v" id="feels">--</div>
+            <div class="statGroup">
+              <div class="statGroupLabel">Temperature</div>
+              <div class="statRow">
+                <div class="stat">
+                  <div class="k kTip" data-tip="Accounts for humidity &amp; wind chill">Feels like</div>
+                  <div class="v" id="feels">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Humidity</div>
+                  <div class="v" id="hum">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Dew point</div>
+                  <div class="v" id="dew">--</div>
+                </div>
+              </div>
             </div>
-            <div class="stat">
-              <div class="k">Humidity</div>
-              <div class="v" id="hum">--</div>
+            <div class="statGroup">
+              <div class="statGroupLabel">Wind</div>
+              <div class="statRow">
+                <div class="stat">
+                  <div class="k">Speed</div>
+                  <div class="v" id="wind">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Direction</div>
+                  <div class="v" id="windDir">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Pressure</div>
+                  <div class="v" id="press">--</div>
+                </div>
+              </div>
             </div>
-            <div class="stat">
-              <div class="k">Wind</div>
-              <div class="v" id="wind">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">Wind direction</div>
-              <div class="v" id="windDir">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">Precip</div>
-              <div class="v" id="precip">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">Rain chance</div>
-              <div class="v" id="popNow">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">Dew point</div>
-              <div class="v" id="dew">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">UV</div>
-              <div class="v" id="uv">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">UV max</div>
-              <div class="v" id="uvMax">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">Visibility</div>
-              <div class="v" id="vis">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">Pressure</div>
-              <div class="v" id="press">--</div>
-            </div>
-            <div class="stat">
-              <div class="k">Sunrise / Sunset</div>
-              <div class="v" id="sun">--</div>
+            <div class="statGroup">
+              <div class="statGroupLabel">Sky</div>
+              <div class="statRow">
+                <div class="stat">
+                  <div class="k">Precip</div>
+                  <div class="v" id="precip">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Rain chance</div>
+                  <div class="v" id="popNow">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">UV now</div>
+                  <div class="v" id="uv">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">UV max</div>
+                  <div class="v" id="uvMax">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Visibility</div>
+                  <div class="v" id="vis">--</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Sunrise / Sunset</div>
+                  <div class="v" id="sun">--</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -257,8 +276,11 @@
             <div class="panelHint" id="hourlyHint"></div>
           </div>
           <div class="tempArc" id="tempArc" hidden></div>
-          <div class="hourly" id="hourly" aria-label="Hourly forecast">
-            <!-- populated by JS -->
+          <div class="hourlyOuter" id="hourlyOuter">
+            <div class="hourly" id="hourly" aria-label="Hourly forecast">
+              <!-- populated by JS -->
+            </div>
+            <div class="hourlyScrollHint" id="hourlyScrollHint" aria-hidden="true">›</div>
           </div>
         </div>
 

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --input-type=module)",
+      "Bash(node --check app.js)",
+      "Bash(node --check render.js)",
+      "Bash(node --check els.js)"
+    ]
+  }
+}
